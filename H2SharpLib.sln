@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "H2SharpLib.Sample", "H2Shar
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{010DCC65-BE28-409D-9136-61C2597EE93F}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		CreateH2Dll.sh = CreateH2Dll.sh
 	EndProjectSection
 EndProject
