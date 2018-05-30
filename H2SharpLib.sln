@@ -3,9 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27705.2000
 MinimumVisualStudioVersion = 15.0.26228.31
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "H2SharpLib", "H2SharpLib\H2SharpLib.csproj", "{936FB33F-AF29-48A6-9066-5C4039DDE88C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "H2SharpLib", "H2SharpLib\H2SharpLib.csproj", "{936FB33F-AF29-48A6-9066-5C4039DDE88C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "H2SharpLib.Sample", "H2SharpLib.Sample\H2SharpLib.Sample.csproj", "{50A5EC11-6F9D-45D8-BB87-8D21DA7D2712}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "H2SharpLib.Sample", "H2SharpLib.Sample\H2SharpLib.Sample.csproj", "{50A5EC11-6F9D-45D8-BB87-8D21DA7D2712}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{010DCC65-BE28-409D-9136-61C2597EE93F}"
+	ProjectSection(SolutionItems) = preProject
+		CreateH2Dll.sh = CreateH2Dll.sh
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
