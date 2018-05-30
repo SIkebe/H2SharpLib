@@ -40,10 +40,9 @@ namespace System.Data.H2
         /// <param name="dir">the directory</param>
         /// <param name="db">the database name (null for all databases)</param>
         /// <param name="quiet">don't print progress information</param>
-        public static void DeleteDbFiles(String dir, String db, bool quiet)
-        {
-            org.h2.tools.DeleteDbFiles.execute(dir, db, quiet);
-        }
+        public static void DeleteDbFiles(String dir, String db, bool quiet) 
+            => org.h2.tools.DeleteDbFiles.execute(dir, db, quiet);
+
         /// <summary>
         /// Backs up a H2 database by creating a .zip file from the database files.
         /// </summary>
@@ -51,20 +50,18 @@ namespace System.Data.H2
         /// <param name="directory">the source directory name</param>
         /// <param name="db">the source database name (null if there is only one database)</param>
         /// <param name="quiet">don't print progress information</param>
-        public static void Backup(String zipFileName, String directory, String db, bool quiet)
-        {
-            org.h2.tools.Backup.execute(zipFileName, directory, db, quiet);
-        }
+        public static void Backup(String zipFileName, String directory, String db, bool quiet) 
+            => org.h2.tools.Backup.execute(zipFileName, directory, db, quiet);
+
         /// <summary>
         /// Restores a H2 database by extracting the database files from a .zip file.
         /// </summary>
         /// <param name="zipFileName">the name of the backup file</param>
         /// <param name="directory">the directory name</param>
         /// <param name="db">the database name (null for all databases)</param>
-        public static void Restore(String zipFileName, String directory, String db)
-        {
-            org.h2.tools.Restore.execute(zipFileName, directory, db);
-        }
+        public static void Restore(String zipFileName, String directory, String db) 
+            => org.h2.tools.Restore.execute(zipFileName, directory, db);
+
         /// <summary>
         /// Changes the password for a database. The passwords must be supplied as char arrays and are cleaned in this method. 
         /// </summary>
@@ -74,20 +71,17 @@ namespace System.Data.H2
         /// <param name="decryptPassword">the decryption password as a char array</param>
         /// <param name="encryptPassword">the encryption password as a char array</param>
         /// <param name="quiet">don't print progress information</param>
-        public static void ChangeFileEncryption(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, bool quiet)
-        {
-            org.h2.tools.ChangeFileEncryption.execute(dir, db, cipher, decryptPassword, encryptPassword, quiet);
-        }
+        public static void ChangeFileEncryption(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, bool quiet) 
+            => org.h2.tools.ChangeFileEncryption.execute(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+
         /// <summary>
         /// Dumps the database. 
         /// </summary>
         /// <param name="dir">the directory</param>
         /// <param name="db">the database name (null for all databases)</param>
         /// <remarks>Dumps the contents of a database file to a human readable text file. This text file can be used to recover most of the data. This tool does not open the database and can be used even if the database files are corrupted. A database can get corrupted if there is a bug in the database engine or file system software, or if an application writes into the database file that doesn't understand the the file format, or if there is a hardware problem.</remarks>
-        public static void Recover(String dir, String db)
-        {
-            org.h2.tools.Recover.execute(dir, db);
-        }
+        public static void Recover(String dir, String db) => org.h2.tools.Recover.execute(dir, db);
+
         /// <summary>
         /// Executes the SQL commands in a script file against a database. 
         /// </summary>
@@ -97,9 +91,7 @@ namespace System.Data.H2
         /// <param name="fileName">the script file</param>
         /// <param name="charsetName">the character set name or null for UTF-8</param>
         /// <param name="continueOnError">if execution should be continued if an error occurs</param>
-        public static void RunScript(String url, String user, String password, String fileName, java.nio.charset.Charset charsetName, bool continueOnError)
-        {
-            org.h2.tools.RunScript.execute(url, user, password, fileName, charsetName, continueOnError);
-        }
+        public static void RunScript(String url, String user, String password, String fileName, java.nio.charset.Charset charsetName, bool continueOnError) 
+            => org.h2.tools.RunScript.execute(url, user, password, fileName, charsetName, continueOnError);
     }
 }

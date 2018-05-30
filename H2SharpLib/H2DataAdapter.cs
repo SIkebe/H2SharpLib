@@ -32,106 +32,88 @@ namespace System.Data.H2
 {
     public sealed class H2DataAdapter : DbDataAdapter, IDbDataAdapter
     {
-        static private readonly object EventRowUpdated = new object();
-        static private readonly object EventRowUpdating = new object();
+        private static readonly object _eventRowUpdated = new object();
+        private static readonly object _eventRowUpdating = new object();
 
         public event EventHandler<H2RowUpdatingEventArgs> RowUpdating
         {
-            add { Events.AddHandler(EventRowUpdating, value); }
-            remove { Events.RemoveHandler(EventRowUpdating, value); }
-        }
-        public event EventHandler<H2RowUpdatedEventArgs> RowUpdated
-        {
-            add { Events.AddHandler(EventRowUpdated, value); }
-            remove { Events.RemoveHandler(EventRowUpdated, value); }
+            add { Events.AddHandler(_eventRowUpdating, value); }
+            remove { Events.RemoveHandler(_eventRowUpdating, value); }
         }
 
-        private H2Command selectCommand;
-        private H2Command insertCommand;
-        private H2Command updateCommand;
-        private H2Command deleteCommand;
+        public event EventHandler<H2RowUpdatedEventArgs> RowUpdated
+        {
+            add { Events.AddHandler(_eventRowUpdated, value); }
+            remove { Events.RemoveHandler(_eventRowUpdated, value); }
+        }
 
         public H2DataAdapter()
         {
         }
+
         public H2DataAdapter(H2Command selectCommand)
         {
-            this.selectCommand = selectCommand;
+            SelectCommand = selectCommand;
         }
+
         public H2DataAdapter(string selectCommandText, string selectConnectionString)
             : this(selectCommandText, new H2Connection(selectConnectionString))
         { }
+
         public H2DataAdapter(string selectCommandText, H2Connection selectConnection)
         {
-            this.selectCommand = selectConnection.CreateCommand();
-            this.selectCommand.CommandText = selectCommandText;
+            SelectCommand = selectConnection.CreateCommand();
+            SelectCommand.CommandText = selectCommandText;
         }
-
-
-        public new H2Command SelectCommand
-        {
-            get { return selectCommand; }
-            set { selectCommand = value; }
-        }
+        
+        public new H2Command SelectCommand { get; set; }
         IDbCommand IDbDataAdapter.SelectCommand
         {
-            get { return selectCommand; }
-            set { selectCommand = (H2Command)value; }
-        }
-        public new H2Command InsertCommand
-        {
-            get { return insertCommand; }
-            set { insertCommand = value; }
-        }
-        IDbCommand IDbDataAdapter.InsertCommand
-        {
-            get { return insertCommand; }
-            set { insertCommand = (H2Command)value; }
-        }
-        public new H2Command UpdateCommand
-        {
-            get { return updateCommand; }
-            set { updateCommand = value; }
-        }
-        IDbCommand IDbDataAdapter.UpdateCommand
-        {
-            get { return updateCommand; }
-            set { updateCommand = (H2Command)value; }
-        }
-        public new H2Command DeleteCommand
-        {
-            get { return deleteCommand; }
-            set { deleteCommand = value; }
-        }
-        IDbCommand IDbDataAdapter.DeleteCommand
-        {
-            get { return deleteCommand; }
-            set { deleteCommand = (H2Command)value; }
+            get { return SelectCommand; }
+            set { SelectCommand = (H2Command)value; }
         }
 
-        override protected RowUpdatedEventArgs CreateRowUpdatedEvent(DataRow dataRow, IDbCommand command, StatementType statementType, DataTableMapping tableMapping)
+        public new H2Command InsertCommand { get; set; }
+        IDbCommand IDbDataAdapter.InsertCommand
         {
-            return new H2RowUpdatedEventArgs(dataRow, command, statementType, tableMapping);
+            get { return InsertCommand; }
+            set { InsertCommand = (H2Command)value; }
         }
-        override protected RowUpdatingEventArgs CreateRowUpdatingEvent(DataRow dataRow, IDbCommand command, StatementType statementType, DataTableMapping tableMapping)
+
+        public new H2Command UpdateCommand { get; set; }
+        IDbCommand IDbDataAdapter.UpdateCommand
         {
-            return new H2RowUpdatingEventArgs(dataRow, command, statementType, tableMapping);
+            get { return UpdateCommand; }
+            set { UpdateCommand = (H2Command)value; }
         }
-        override protected void OnRowUpdating(RowUpdatingEventArgs value)
+
+        public new H2Command DeleteCommand { get; set; }
+        IDbCommand IDbDataAdapter.DeleteCommand
         {
-            EventHandler<H2RowUpdatingEventArgs> handler = (EventHandler<H2RowUpdatingEventArgs>)Events[EventRowUpdating];
-            if (null != handler)
-            {
-                handler(this, (H2RowUpdatingEventArgs)value);
-            }
+            get { return DeleteCommand; }
+            set { DeleteCommand = (H2Command)value; }
         }
-        override protected void OnRowUpdated(RowUpdatedEventArgs value)
-        {
-            EventHandler<H2RowUpdatedEventArgs> handler = (EventHandler<H2RowUpdatedEventArgs>)Events[EventRowUpdated];
-            if (null != handler)
-            {
-                handler(this, (H2RowUpdatedEventArgs)value);
-            }
-        }
+
+        override protected RowUpdatedEventArgs CreateRowUpdatedEvent(
+            DataRow dataRow,
+            IDbCommand command, 
+            StatementType statementType, 
+            DataTableMapping tableMapping) 
+            => new H2RowUpdatedEventArgs(dataRow, command, statementType, tableMapping);
+
+        override protected RowUpdatingEventArgs CreateRowUpdatingEvent(
+            DataRow dataRow,
+            IDbCommand command,
+            StatementType statementType,
+            DataTableMapping tableMapping) 
+            => new H2RowUpdatingEventArgs(dataRow, command, statementType, tableMapping);
+
+        override protected void OnRowUpdating(RowUpdatingEventArgs value) 
+            => ((EventHandler<H2RowUpdatingEventArgs>)Events[_eventRowUpdating])?
+            .Invoke(this, (H2RowUpdatingEventArgs)value);
+
+        override protected void OnRowUpdated(RowUpdatedEventArgs value) 
+            => ((EventHandler<H2RowUpdatedEventArgs>)Events[_eventRowUpdated])?
+            .Invoke(this, (H2RowUpdatedEventArgs)value);
     }
 }

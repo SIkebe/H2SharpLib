@@ -45,35 +45,35 @@ namespace System.Data.H2
         public H2Parameter() { }
         public H2Parameter(string parameterName)
         {
-            this.ParameterName = parameterName;
+            ParameterName = parameterName;
         }
         public H2Parameter(string parameterName, object value)
         {
-            this.ParameterName = parameterName;
-            this.Value = value;
+            ParameterName = parameterName;
+            Value = value;
         }
         public H2Parameter(object value)
         {
-            this.Value = value;
+            Value = value;
         }
 
         public H2Parameter(string name, DbType dataType)
         {
-            this.ParameterName = name;
-            this.DbType = dataType;
+            ParameterName = name;
+            DbType = dataType;
         }
         public H2Parameter(string name, DbType dataType, int size)
         {
-            this.ParameterName = name;
-            this.DbType = dataType;
-            this.Size = size;
+            ParameterName = name;
+            DbType = dataType;
+            Size = size;
         }
         public H2Parameter(string name, DbType dataType, int size, string sourceColumn)
         {
-            this.ParameterName = name;
-            this.DbType = dataType;
-            this.Size = size;
-            this.SourceColumn = sourceColumn;
+            ParameterName = name;
+            DbType = dataType;
+            Size = size;
+            SourceColumn = sourceColumn;
         }
         public H2Parameter(
                      string name,
@@ -87,14 +87,14 @@ namespace System.Data.H2
                      DataRowVersion sourceVersion,
                      object value)
         {
-            this.ParameterName = name;
-            this.DbType = dbType;
-            this.Size = size;
-            this.Direction = direction;
-            this.IsNullable = isNullable;
-            this.SourceColumn = sourceColumn;
-            this.SourceVersion = sourceVersion;
-            this.Value = value;
+            ParameterName = name;
+            DbType = dbType;
+            Size = size;
+            Direction = direction;
+            IsNullable = isNullable;
+            SourceColumn = sourceColumn;
+            SourceVersion = sourceVersion;
+            Value = value;
         }
 
 
@@ -135,15 +135,15 @@ namespace System.Data.H2
             get { return _value; }
             set
             {
-                this._value = value;
+                _value = value;
                 if (value is DBNull || value == null)
-                    this.javaValue = null;
+                    javaValue = null;
                 else
                 {
                     if (DotNetToJava == null)
                         DotNetToJava = H2Helper.ConverterToJava(DbType);
 
-                    this.javaValue = DotNetToJava(value);
+                    javaValue = DotNetToJava(value);
                 }
             }
         }

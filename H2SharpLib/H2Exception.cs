@@ -30,31 +30,25 @@ using System.Runtime.Serialization;
 
 namespace System.Data.H2
 {
-
     [Serializable]
     public class H2Exception : Exception
     {
         [NonSerialized]
-        java.sql.SQLException sqlException;
-
+        private readonly java.sql.SQLException _sqlException;
 
         internal H2Exception(java.sql.SQLException sqlException)
-            : base(sqlException.getMessage())
-        {
-            this.sqlException = sqlException;
-        }
+            : base(sqlException.getMessage()) 
+            => _sqlException = sqlException;
+
         public H2Exception() { }
         public H2Exception(string message) : base(message) { }
         public H2Exception(string message, Exception inner) : base(message, inner) { }
         protected H2Exception(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
+        }
 
-        }
         [CLSCompliant(false)]
-        public java.sql.SQLException SqlException
-        {
-            get { return sqlException; }
-        }
+        public java.sql.SQLException SqlException => _sqlException;
     }
 }

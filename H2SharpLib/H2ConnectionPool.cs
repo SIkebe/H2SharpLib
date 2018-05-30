@@ -40,89 +40,86 @@ namespace System.Data.H2
     public sealed class H2ConnectionPool : IDisposable
     {
         #region fields
-        object syncRoot;
-        string connectionString;
-        string userName;
-        string password;
-        bool inTimeout;
-        bool isDisposed;
-        int maxConnections;
-        int currentCount;
-        int connectionTimeout;
-        ManualResetEvent waitHandle;
-        Queue<Connection> avaliable;
+
+        private readonly object _syncRoot = new object();
+        private readonly string _connectionString;
+        private string _userName;
+        private string _password;
+        private bool _inTimeout;
+        private bool _isDisposed;
+        private int _currentCount;
+        private ManualResetEvent _waitHandle = new ManualResetEvent(false);
+        private Queue<Connection> _avaliable = new Queue<Connection>();
+
         #endregion
+
         #region constructors
+
         /// <summary>
         /// Creates a new H2ConnectionPool Instance.
         /// </summary>
-        /// <param name="url">connection string</param>
+        /// <param name="connectionString">connection string</param>
         public H2ConnectionPool(string connectionString) : this(connectionString, null, null) { }
+
         /// <summary>
         /// Creates a new H2ConnectionPool Instance.
         /// </summary>
-        /// <param name="url">connection string</param>
+        /// <param name="connectionString">connection string</param>
         /// <param name="userName">username for the database</param>
         /// <param name="password">password for the database</param>
         public H2ConnectionPool(string connectionString, string userName, string password)
         {
-            this.syncRoot = new object();
-            this.connectionTimeout = 2000;
-            this.connectionString = connectionString;
-            this.userName = userName;
-            this.password = password;
-            this.avaliable = new Queue<Connection>();
-            this.waitHandle = new ManualResetEvent(false);
+            _connectionString = connectionString;
+            _userName = userName;
+            _password = password;
         }
+
         #endregion
+
         #region properties
+
         /// <summary>
         /// The maximum number of connections that this pool will have open at the same time.
         /// </summary>
-        public int MaxConnections
-        {
-            get { return maxConnections; }
-            set { maxConnections = value; }
-        }
+        public int MaxConnections { get; set; }
+
         /// <summary>
         /// The amount of time after all connections are no longer in use that a connection 
         /// gets closed, repeating until all connections are closed.
         /// </summary>
-        public int ConnectionTimeout
-        {
-            get { return connectionTimeout; }
-            set { connectionTimeout = value; }
-        }
+        public int ConnectionTimeout { get; set; } = 2000;
+
         #endregion
+
         #region methods
-        internal Connection GetConnection()
-        {
-            return GetConnection(userName, password);
-        }
+
+        internal Connection GetConnection() => GetConnection(_userName, _password);
+
         internal Connection GetConnection(string userName, string password)
         {
-            lock (syncRoot)
+            lock (_syncRoot)
             {
-                if (isDisposed) { throw new ObjectDisposedException(GetType().Name); }
-                waitHandle.Set();
-                if (avaliable.Count > 0)
+                if (_isDisposed) { throw new ObjectDisposedException(GetType().Name); }
+
+                _waitHandle.Set();
+                if (_avaliable.Count > 0)
                 {
-                    return avaliable.Dequeue();
+                    return _avaliable.Dequeue();
                 }
                 else
                 {
-                    if (currentCount < maxConnections)
+                    if (_currentCount < MaxConnections)
                     {
-                        Connection connection = DriverManager.getConnection(connectionString, userName, password);
-                        currentCount++;
+                        Connection connection = DriverManager.getConnection(_connectionString, userName, password);
+                        _currentCount++;
                         return connection;
                     }
                     else
                     {
-                        Monitor.Wait(syncRoot);
-                        if (avaliable.Count > 0)
+                        Monitor.Wait(_syncRoot);
+                        if (_avaliable.Count > 0)
                         {
-                            return avaliable.Dequeue();
+                            return _avaliable.Dequeue();
                         }
                         else
                         {
@@ -132,76 +129,80 @@ namespace System.Data.H2
                 }
             }
         }
+
         internal void Enqueue(Connection connection)
         {
-            lock (syncRoot)
+            lock (_syncRoot)
             {
-                if (isDisposed)
+                if (_isDisposed)
                 {
                     connection.close();
-                    currentCount--;
+                    _currentCount--;
                     return;
                 }
+
                 connection.clearWarnings();
-                avaliable.Enqueue(connection);
-                Monitor.Pulse(syncRoot);
+                _avaliable.Enqueue(connection);
+                Monitor.Pulse(_syncRoot);
                 RegisterTimout();
             }
         }
+
         void RegisterTimout()
         {
-            if (!inTimeout &&
-                avaliable.Count == currentCount &&
-                currentCount > 0)
+            if (!_inTimeout &&
+                _avaliable.Count == _currentCount &&
+                _currentCount > 0)
             {
-                inTimeout = true;
-                ThreadPool.RegisterWaitForSingleObject(waitHandle, TimeoutCallback, null, connectionTimeout, true);
+                _inTimeout = true;
+                ThreadPool.RegisterWaitForSingleObject(_waitHandle, TimeoutCallback, null, ConnectionTimeout, true);
             }
         }
+
         void TimeoutCallback(object state, bool timedout)
         {
-            lock (syncRoot)
+            lock (_syncRoot)
             {
-                inTimeout = false;
-                if (!timedout || isDisposed) { return; }
-                if (avaliable.Count > 0)
+                _inTimeout = false;
+                if (!timedout || _isDisposed) { return; }
+                if (_avaliable.Count > 0)
                 {
-                    Connection connection = avaliable.Dequeue();
+                    Connection connection = _avaliable.Dequeue();
                     connection.close();
-                    currentCount--;
+                    _currentCount--;
                     RegisterTimout();
                 }
             }
         }
+
         /// <summary>
         /// Gets a connection that will open from this pool.
         /// </summary>
         /// <returns>A H2Connection</returns>
-        public H2Connection CreateConnection()
-        {
-            return new H2Connection(this);
-        }
+        public H2Connection CreateConnection() => new H2Connection(this);
+
         /// <summary>
         /// Closes the pool and all its connections.
         /// </summary>
         public void Dispose()
         {
-            lock (syncRoot)
+            lock (_syncRoot)
             {
-                if (!isDisposed)
+                if (!_isDisposed)
                 {
-                    isDisposed = true;
-                    Monitor.PulseAll(syncRoot);
-                    foreach (Connection con in avaliable)
+                    _isDisposed = true;
+                    Monitor.PulseAll(_syncRoot);
+                    foreach (Connection con in _avaliable)
                     {
                         con.close();
-                        currentCount--;
+                        _currentCount--;
                     }
-                    avaliable.Clear();
-                    waitHandle.Set();
-                    waitHandle.Close();
-                    userName = null;
-                    password = null;
+
+                    _avaliable.Clear();
+                    _waitHandle.Set();
+                    _waitHandle.Close();
+                    _userName = null;
+                    _password = null;
                 }
             }
         }

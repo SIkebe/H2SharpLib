@@ -30,11 +30,8 @@ using System.Data.Common;
 using java.sql;
 using System.Collections.Generic;
 
-
 namespace System.Data.H2
 {
-
-
     public sealed class H2DataReader : DbDataReader
     {
         private static int ConvertOrdnal(int ordinal)
@@ -52,8 +49,7 @@ namespace System.Data.H2
             this.set = set;
             this.connection = connection;
         }
-
-
+        
         private ResultSetMetaData Meta
         {
             get
@@ -204,12 +200,12 @@ namespace System.Data.H2
         public override DataTable GetSchemaTable()
         {
             /*
-			JDBC reference :
-			http://java.sun.com/j2se/1.5.0/docs/api/java/sql/ResultSetMetaData.html
-			
-			ADO.NET reference :
-			http://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqldatareader.getschematable.aspx
-			*/
+            JDBC reference :
+            http://java.sun.com/j2se/1.5.0/docs/api/java/sql/ResultSetMetaData.html
+            
+            ADO.NET reference :
+            http://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqldatareader.getschematable.aspx
+            */
             var table = new DataTable();
             var ColumnName = table.Columns.Add("ColumnName", typeof(String));
             var ColumnOrdinal = table.Columns.Add("ColumnOrdinal", typeof(Int32));
@@ -337,39 +333,39 @@ namespace System.Data.H2
         {
             // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
             /*try {
-				var dbMeta = connection.connection.getMetaData();
-				var res = dbMeta != null ? dbMeta.getColumns(null, null, tableName, null) : null;
-				if (res != null) {
-					var ret = new Dictionary<String, int>();
-					while (res.next()) {
-						var columnName = res.getString(4);
-						var colType = res.getInt(5);
-						ret[columnName] = colType;
-					}
-					return ret;
-				}
-			} catch (Exception ex) { 
-				Console.WriteLine(ex);
-			}*/
+                var dbMeta = connection.connection.getMetaData();
+                var res = dbMeta != null ? dbMeta.getColumns(null, null, tableName, null) : null;
+                if (res != null) {
+                    var ret = new Dictionary<String, int>();
+                    while (res.next()) {
+                        var columnName = res.getString(4);
+                        var colType = res.getInt(5);
+                        ret[columnName] = colType;
+                    }
+                    return ret;
+                }
+            } catch (Exception ex) { 
+                Console.WriteLine(ex);
+            }*/
             return connection.ReadMap<int>("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where upper(table_name) = '" + tableName.ToUpper() + "'");
         }
         public static HashSet<String> GetPrimaryKeysColumns(this H2Connection connection, String tableName)
         {
             // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
             /*try {
-				var dbMeta = connection.connection.getMetaData();
-				var res = dbMeta != null ? dbMeta.getPrimaryKeys(null, null, tableName) : null;
-				if (res != null) {
-					var ret = new HashSet<String>();
-					while (res.next()) {
-						var columnName = res.getString(4);
-						ret.Add(columnName);
-					}
-					return ret;
-				}
-			} catch (Exception ex) { 
-				Console.WriteLine(ex);
-			}*/
+                var dbMeta = connection.connection.getMetaData();
+                var res = dbMeta != null ? dbMeta.getPrimaryKeys(null, null, tableName) : null;
+                if (res != null) {
+                    var ret = new HashSet<String>();
+                    while (res.next()) {
+                        var columnName = res.getString(4);
+                        ret.Add(columnName);
+                    }
+                    return ret;
+                }
+            } catch (Exception ex) { 
+                Console.WriteLine(ex);
+            }*/
             var ret = new HashSet<String>();
             foreach (var list in connection.ReadStrings("select column_list from INFORMATION_SCHEMA.CONSTRAINTS where constraint_type = 'PRIMARY KEY' and upper(table_name) = '" + tableName.ToUpper() + "' "))
             {
@@ -382,19 +378,19 @@ namespace System.Data.H2
         {
             // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String, java.lang.String, java.lang.String, boolean, boolean)
             /*try {
-				var dbMeta = connection.connection.getMetaData();
-				var res = dbMeta != null ? dbMeta.getIndexInfo(null, null, tableName, true, false) : null;
-				if (res != null) {
-					var ret = new HashSet<String>();
-					while (res.next()) {
-						var columnName = res.getString(4);
-						ret.Add(columnName);
-					}
-					return ret;
-				}
-			} catch (Exception ex) { 
-				Console.WriteLine(ex);
-			}*/
+                var dbMeta = connection.connection.getMetaData();
+                var res = dbMeta != null ? dbMeta.getIndexInfo(null, null, tableName, true, false) : null;
+                if (res != null) {
+                    var ret = new HashSet<String>();
+                    while (res.next()) {
+                        var columnName = res.getString(4);
+                        ret.Add(columnName);
+                    }
+                    return ret;
+                }
+            } catch (Exception ex) { 
+                Console.WriteLine(ex);
+            }*/
             return new HashSet<String>(connection.ReadStrings("select column_list from INFORMATION_SCHEMA.CONSTRAINTS where constraint_type = 'UNIQUE' and upper(table_name) = '" + tableName.ToUpper() + "'"));
         }
     }
