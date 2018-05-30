@@ -26,12 +26,9 @@
  */
 #endregion
 
-using System;
 using System.Threading;
-using System.Data.Common;
 using System.Collections.Generic;
 using java.sql;
-using org.h2.jdbcx;
 
 namespace System.Data.H2
 {

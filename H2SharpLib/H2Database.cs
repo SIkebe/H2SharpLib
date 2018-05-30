@@ -26,9 +26,6 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using org.h2.jdbcx;
 
 namespace System.Data.H2
 {

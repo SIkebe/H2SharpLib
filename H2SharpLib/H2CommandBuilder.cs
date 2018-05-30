@@ -1,11 +1,7 @@
-﻿using System;
-using System.Data.Common;
+﻿using System.Data.Common;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Data.H2;
 using System.Text.RegularExpressions;
-using System.Data;
 
 namespace System.Data.H2
 {

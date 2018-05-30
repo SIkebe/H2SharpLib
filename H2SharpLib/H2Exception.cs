@@ -26,7 +26,6 @@
  */
 #endregion
 
-using System;
 using System.Runtime.Serialization;
 
 namespace System.Data.H2

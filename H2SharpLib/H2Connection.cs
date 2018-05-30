@@ -27,7 +27,6 @@
 #endregion
 
 using java.sql;
-using org.h2.jdbcx;
 using System.Data.Common;
 
 namespace System.Data.H2

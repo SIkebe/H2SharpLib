@@ -26,7 +26,6 @@
  */
 #endregion
 
-using System;
 
 namespace System.Data.H2.Api
 {
