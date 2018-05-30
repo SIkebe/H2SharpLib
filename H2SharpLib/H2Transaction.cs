@@ -32,41 +32,34 @@ namespace System.Data.H2
 {
     public sealed class H2Transaction : DbTransaction
     {
-        H2Connection connection;
-        internal H2Transaction(H2Connection connection)
-        {
-            this.connection = connection;
-        }
+        internal H2Transaction(H2Connection connection) => Connection = connection;
 
-        public new H2Connection Connection { get { return connection; } }
-        public override IsolationLevel IsolationLevel
-        {
-            get { return H2Helper.GetAdoTransactionLevel(connection.connection.getTransactionIsolation()); }
-        }
+        public new H2Connection Connection { get; }
 
-        protected override DbConnection DbConnection
-        {
-            get { return connection; }
-        }
+        public override IsolationLevel IsolationLevel 
+            => H2Helper.GetAdoTransactionLevel(Connection.Connection.getTransactionIsolation());
+
+        protected override DbConnection DbConnection => Connection;
 
         public override void Commit()
         {
             try
             {
-                connection.connection.commit();
-                connection.transaction = null;
+                Connection.Connection.commit();
+                Connection.Transaction = null;
             }
             catch (org.h2.jdbc.JdbcSQLException ex)
             {
                 throw new H2Exception(ex);
             }
         }
+
         public override void Rollback()
         {
             try
             {
-                connection.connection.rollback();
-                connection.transaction = null;
+                Connection.Connection.rollback();
+                Connection.Transaction = null;
             }
             catch (org.h2.jdbc.JdbcSQLException ex)
             {

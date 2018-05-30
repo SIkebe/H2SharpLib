@@ -30,82 +30,67 @@ using java.sql;
 using org.h2.jdbcx;
 using System.Data.Common;
 
-
 namespace System.Data.H2
 {
     public sealed class H2Connection : DbConnection
     {
-        static H2Connection()
-        {
-            org.h2.Driver.load();
-        }
+        private string _connectionString;
+        private string _userName;
+        private string _password;
+        private H2ConnectionPool _pool;
 
-        string connectionString;
-        internal H2Transaction transaction;
-        internal Connection connection;
-        string userName;
-        string password;
-        H2ConnectionPool pool;
+        static H2Connection() => org.h2.Driver.load();
 
         public H2Connection() { }
-        public H2Connection(string connectionString)
-        {
-            this.connectionString = connectionString;
-        }
+
+        public H2Connection(string connectionString) => _connectionString = connectionString;
+
         public H2Connection(string connectionString, string userName, string password)
         {
-            this.connectionString = connectionString;
-            this.userName = userName;
-            this.password = password;
-        }
-        internal H2Connection(Connection self)
-        {
-            this.connection = self;
-            if (H2Helper.GetAdoTransactionLevel(self.getTransactionIsolation()) != IsolationLevel.Unspecified)
-            {
-                this.transaction = new H2Transaction(this);
-            }
-        }
-        internal H2Connection(H2ConnectionPool pool)
-        {
-            this.pool = pool;
+            _connectionString = connectionString;
+            _userName = userName;
+            _password = password;
         }
 
-        public override string DataSource
+        internal H2Connection(Connection self)
         {
-            get { throw new NotImplementedException(); }
+            Connection = self;
+            if (H2Helper.GetAdoTransactionLevel(self.getTransactionIsolation()) != IsolationLevel.Unspecified)
+            {
+                Transaction = new H2Transaction(this);
+            }
         }
-        public override string ServerVersion
-        {
-            get { throw new NotImplementedException(); }
-        }
+
+        internal H2Connection(H2ConnectionPool pool) => _pool = pool;
+
+        internal Connection Connection { get; set; }
+
         public override string ConnectionString
         {
-            get { return connectionString; }
+            get => _connectionString;
             set
             {
                 if (IsOpen) { throw new InvalidOperationException(); }
-                connectionString = value;
+                _connectionString = value;
             }
         }
-        public string UserName
-        {
-            get { return userName; }
-            set
-            {
-                if (IsOpen) { throw new InvalidOperationException(); }
-                userName = value;
-            }
-        }
+
+        public override string Database => throw new NotImplementedException();
+        public override string DataSource => throw new NotImplementedException();
+        public bool IsOpen => Connection != null;
+
         public string Password
         {
-            get { return password; }
+            get => _password;
             set
             {
                 if (IsOpen) { throw new InvalidOperationException(); }
-                password = value;
+                _password = value;
             }
         }
+
+        public override string ServerVersion => throw new NotImplementedException();
+
         public override ConnectionState State
         {
             get
@@ -114,39 +99,41 @@ namespace System.Data.H2
                 {
                     return ConnectionState.Open;
                 }
-                if (connection == null) { return ConnectionState.Closed; }
 
-                return ConnectionState.Open;
+                return ConnectionState.Closed;
             }
         }
-        public override string Database
-        {
-            get { throw new NotImplementedException(); }
-        }
-        public bool IsOpen { get { return connection != null; } }
 
-        public override void ChangeDatabase(string databaseName)
+        internal H2Transaction Transaction { get; set; }
+
+        public string UserName
         {
-            throw new NotImplementedException();
+            get => _userName;
+            set
+            {
+                if (IsOpen) { throw new InvalidOperationException(); }
+                _userName = value;
+            }
         }
-        public override void Close()
-        {
-            Dispose();
-        }
+
+        public override void ChangeDatabase(string databaseName) => throw new NotImplementedException();
+
+        public override void Close() => Dispose(true);
+
         public override void Open()
         {
-            if (userName == null || password == null)
+            if (_userName == null || _password == null)
             {
                 if (IsOpen) { throw new InvalidOperationException("connection is already open"); }
                 try
                 {
-                    if (pool != null)
+                    if (_pool != null)
                     {
-                        this.connection = pool.GetConnection();
+                        Connection = _pool.GetConnection();
                     }
                     else
                     {
-                        this.connection = java.sql.DriverManager.getConnection(connectionString);
+                        Connection = java.sql.DriverManager.getConnection(_connectionString);
                     }
                 }
                 catch (org.h2.jdbc.JdbcSQLException ex)
@@ -156,23 +143,25 @@ namespace System.Data.H2
             }
             else
             {
-                Open(userName, password);
+                Open(_userName, _password);
             }
         }
+
         public void Open(string userName, string password)
         {
-            if (userName == null) { throw new ArgumentNullException("userName"); }
-            if (password == null) { throw new ArgumentNullException("password"); }
+            if (userName == null) { throw new ArgumentNullException(nameof(userName)); }
+            if (password == null) { throw new ArgumentNullException(nameof(password)); }
             if (IsOpen) { throw new InvalidOperationException("connection is already open"); }
+
             try
             {
-                if (pool != null)
+                if (_pool != null)
                 {
-                    this.connection = pool.GetConnection(userName, password);
+                    Connection = _pool.GetConnection(userName, password);
                 }
                 else
                 {
-                    this.connection = java.sql.DriverManager.getConnection(connectionString, userName, password);
+                    Connection = java.sql.DriverManager.getConnection(_connectionString, userName, password);
                 }
             }
             catch (org.h2.jdbc.JdbcSQLException ex)
@@ -180,14 +169,11 @@ namespace System.Data.H2
                 throw new H2Exception(ex);
             }
         }
-        public new H2Command CreateCommand()
-        {
-            return new H2Command(this);
-        }
-        public new H2Transaction BeginTransaction()
-        {
-            return BeginTransaction(IsolationLevel.ReadCommitted);
-        }
+
+        public new H2Command CreateCommand() => new H2Command(this);
+
+        public new H2Transaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
+
         public new H2Transaction BeginTransaction(IsolationLevel isolationLevel)
         {
             CheckIsOpen();
@@ -195,31 +181,30 @@ namespace System.Data.H2
             {
                 isolationLevel = IsolationLevel.ReadCommitted;
             }
-            if (transaction != null) { throw new InvalidOperationException(); }
+
+            if (Transaction != null) { throw new InvalidOperationException(); }
             try
             {
-                connection.setTransactionIsolation(H2Helper.GetJdbcTransactionLevel(isolationLevel));
+                Connection.setTransactionIsolation(H2Helper.GetJdbcTransactionLevel(isolationLevel));
             }
             catch (org.h2.jdbc.JdbcSQLException ex)
             {
                 throw new H2Exception(ex);
             }
-            transaction = new H2Transaction(this);
-            return transaction;
+
+            Transaction = new H2Transaction(this);
+            return Transaction;
         }
 
         internal void CheckIsOpen()
         {
             if (!IsOpen) { throw new InvalidOperationException("must open the connection first"); }
         }
-        protected override DbCommand CreateDbCommand()
-        {
-            return CreateCommand();
-        }
-        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
-        {
-            return BeginTransaction(isolationLevel);
-        }
+
+        protected override DbCommand CreateDbCommand() => CreateCommand();
+
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -227,24 +212,26 @@ namespace System.Data.H2
             {
                 if (IsOpen)
                 {
-                    if (transaction != null)
+                    if (Transaction != null)
                     {
-                        transaction.Dispose();
-                        transaction = null;
+                        Transaction.Dispose();
+                        Transaction = null;
                     }
-                    if (pool != null)
+
+                    if (_pool != null)
                     {
-                        pool.Enqueue(connection);
-                        connection = null;
+                        _pool.Enqueue(Connection);
+                        Connection = null;
                     }
                     else
                     {
-                        connection.close();
-                        connection = null;
+                        Connection.close();
+                        Connection = null;
                     }
                 }
-                userName = null;
-                password = null;
+
+                _userName = null;
+                _password = null;
             }
         }
     }
