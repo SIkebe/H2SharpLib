@@ -35,187 +35,96 @@ namespace System.Data.H2
 {
     public sealed class H2ParameterCollection : DbParameterCollection, IList<H2Parameter>
     {
-        List<H2Parameter> parameters;
+        private List<H2Parameter> _parameters = new List<H2Parameter>();
 
-        internal H2ParameterCollection()
-        {
-            parameters = new List<H2Parameter>();
-        }
+        internal H2ParameterCollection() { }
 
-        public override int Count
-        {
-            get { return parameters.Count; }
-        }
-        public override bool IsFixedSize
-        {
-            get { return false; }
-        }
-        public override bool IsReadOnly
-        {
-            get { return false; }
-        }
-        public override object SyncRoot
-        {
-            get { throw new NotImplementedException(); }
-        }
-        public override bool IsSynchronized
-        {
-            get { return false; }
-        }
+        public override int Count => _parameters.Count;
+        public override bool IsFixedSize => false;
+        public override bool IsReadOnly => false;
+        public override object SyncRoot => throw new NotImplementedException();
+        public override bool IsSynchronized => false;
 
         public new H2Parameter this[int index]
         {
-            get
-            {
-                return parameters[index];
-            }
-            set
-            {
-                parameters[index] = value;
-            }
+            get => _parameters[index];
+            set => _parameters[index] = value;
         }
 
-        protected override DbParameter GetParameter(string parameterName)
-        {
-            return parameters.Find(delegate (H2Parameter p) { return p.ParameterName == parameterName; });
-        }
-        protected override DbParameter GetParameter(int index)
-        {
-            return parameters[index];
-        }
+        protected override DbParameter GetParameter(string parameterName) 
+            => _parameters.Find(delegate (H2Parameter p) { return p.ParameterName == parameterName; });
+        protected override DbParameter GetParameter(int index) => _parameters[index];
         protected override void SetParameter(string parameterName, DbParameter value)
         {
             int index = IndexOf(parameterName);
             if (index != -1)
             {
-                parameters[index] = (H2Parameter)value;
+                _parameters[index] = (H2Parameter)value;
             }
         }
-        protected override void SetParameter(int index, DbParameter value)
-        {
-            parameters[index] = (H2Parameter)value;
-        }
+
+        protected override void SetParameter(int index, DbParameter value) 
+            => _parameters[index] = (H2Parameter)value;
 
         public override int Add(object value)
         {
-            H2Parameter parameter = value as H2Parameter;
-            if (parameter == null)
+            if (!(value is H2Parameter parameter))
             {
-                parameters.Add(new H2Parameter(value));
+                _parameters.Add(new H2Parameter(value));
             }
             else
             {
-                parameters.Add(parameter);
+                _parameters.Add(parameter);
             }
-            return parameters.Count - 1;
+
+            return _parameters.Count - 1;
         }
-        public override void AddRange(Array values)
-        {
-            throw new NotImplementedException();
-        }
-        public override void Clear()
-        {
-            parameters.Clear();
-        }
-        public override bool Contains(string value)
-        {
-            return parameters.Exists(delegate (H2Parameter p) { return p.ParameterName == value; });
-        }
-        public override bool Contains(object value)
-        {
-            return parameters.Exists(delegate (H2Parameter p) { return p.Value == value; });
-        }
-        public override void CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
-        public override System.Collections.IEnumerator GetEnumerator()
-        {
-            return parameters.GetEnumerator();
-        }
-        public override int IndexOf(string parameterName)
-        {
-            return parameters.FindIndex(delegate (H2Parameter p) { return p.ParameterName == parameterName; });
-        }
-        public override int IndexOf(object value)
-        {
-            return parameters.FindIndex(delegate (H2Parameter p) { return p.Value == value; });
-        }
-        public override void Insert(int index, object value)
-        {
-            parameters.Insert(index, new H2Parameter(value));
-        }
+        public override void AddRange(Array values) => throw new NotImplementedException();
+        public override void Clear() => _parameters.Clear();
+        public override bool Contains(string value) 
+            => _parameters.Exists(delegate (H2Parameter p) { return p.ParameterName == value; });
+        public override bool Contains(object value) 
+            => _parameters.Exists(delegate (H2Parameter p) { return p.Value == value; });
+        public override void CopyTo(Array array, int index) => throw new NotImplementedException();
+        public override System.Collections.IEnumerator GetEnumerator() => _parameters.GetEnumerator();
+        public override int IndexOf(string parameterName) 
+            => _parameters.FindIndex(delegate (H2Parameter p) { return p.ParameterName == parameterName; });
+        public override int IndexOf(object value) 
+            => _parameters.FindIndex(delegate (H2Parameter p) { return p.Value == value; });
+        public override void Insert(int index, object value) => _parameters.Insert(index, new H2Parameter(value));
 
         public override void Remove(object value)
         {
             int index = IndexOf(value);
             if (index != -1)
             {
-                parameters.RemoveAt(index);
+                _parameters.RemoveAt(index);
             }
         }
+
         public override void RemoveAt(string parameterName)
         {
             int index = IndexOf(parameterName);
             if (index != -1)
             {
-                parameters.RemoveAt(index);
+                _parameters.RemoveAt(index);
             }
         }
-        public override void RemoveAt(int index)
-        {
-            parameters.RemoveAt(index);
-        }
 
-        public int FindIndex(int index, Predicate<H2Parameter> match)
-        {
-            return parameters.FindIndex(index, match);
-        }
-        public int FindIndex(int index, int count, Predicate<H2Parameter> match)
-        {
-            return parameters.FindIndex(index, count, match);
-        }
-        public int FindIndex(Predicate<H2Parameter> match)
-        {
-            return parameters.FindIndex(match);
-        }
-        public H2Parameter Find(Predicate<H2Parameter> match)
-        {
-            return parameters.Find(match);
-        }
-        public H2Parameter FindLast(Predicate<H2Parameter> match)
-        {
-            return parameters.FindLast(match);
-        }
+        public override void RemoveAt(int index) => _parameters.RemoveAt(index);
 
-        public int IndexOf(H2Parameter item)
-        {
-            return parameters.IndexOf(item);
-        }
-        public void Insert(int index, H2Parameter item)
-        {
-            parameters.Insert(index, item);
-        }
-        public void Add(H2Parameter item)
-        {
-            parameters.Add(item);
-        }
-        public bool Contains(H2Parameter item)
-        {
-            return parameters.Contains(item);
-        }
-        public void CopyTo(H2Parameter[] array, int arrayIndex)
-        {
-            parameters.CopyTo(array, arrayIndex);
-        }
-        public bool Remove(H2Parameter item)
-        {
-            return parameters.Remove(item);
-        }
-
-        IEnumerator<H2Parameter> IEnumerable<H2Parameter>.GetEnumerator()
-        {
-            return parameters.GetEnumerator();
-        }
+        public int FindIndex(int index, Predicate<H2Parameter> match) => _parameters.FindIndex(index, match);
+        public int FindIndex(int index, int count, Predicate<H2Parameter> match) 
+            => _parameters.FindIndex(index, count, match);
+        public int FindIndex(Predicate<H2Parameter> match) => _parameters.FindIndex(match);
+        public H2Parameter Find(Predicate<H2Parameter> match) => _parameters.Find(match);
+        public H2Parameter FindLast(Predicate<H2Parameter> match) => _parameters.FindLast(match);
+        public int IndexOf(H2Parameter item) => _parameters.IndexOf(item);
+        public void Insert(int index, H2Parameter item) => _parameters.Insert(index, item);
+        public void Add(H2Parameter item) => _parameters.Add(item);
+        public bool Contains(H2Parameter item) => _parameters.Contains(item);
+        public void CopyTo(H2Parameter[] array, int arrayIndex) => _parameters.CopyTo(array, arrayIndex);
+        public bool Remove(H2Parameter item) => _parameters.Remove(item);
+        IEnumerator<H2Parameter> IEnumerable<H2Parameter>.GetEnumerator() => _parameters.GetEnumerator();
     }
 }

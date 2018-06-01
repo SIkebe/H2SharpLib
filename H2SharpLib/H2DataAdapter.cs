@@ -51,10 +51,8 @@ namespace System.Data.H2
         {
         }
 
-        public H2DataAdapter(H2Command selectCommand)
-        {
-            SelectCommand = selectCommand;
-        }
+        public H2DataAdapter(H2Command selectCommand) 
+            => SelectCommand = selectCommand;
 
         public H2DataAdapter(string selectCommandText, string selectConnectionString)
             : this(selectCommandText, new H2Connection(selectConnectionString))

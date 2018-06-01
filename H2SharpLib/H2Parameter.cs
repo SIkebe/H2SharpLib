@@ -34,40 +34,37 @@ namespace System.Data.H2
 
     public sealed class H2Parameter : DbParameter
     {
-        ParameterDirection _direction = ParameterDirection.Input;
-        bool isTypeSet;
+        private ParameterDirection _direction = ParameterDirection.Input;
+        private bool _isTypeSet;
         object _value;
-        object javaValue;
-        DbType _dbType = DbType.Object;
-        int javaType;
-        DataRowVersion _sourceVersion = DataRowVersion.Current;
+        private object _javaValue;
+        private DbType _dbType = DbType.Object;
+        private int _javaType;
 
         public H2Parameter() { }
-        public H2Parameter(string parameterName)
-        {
-            ParameterName = parameterName;
-        }
+        public H2Parameter(string parameterName) => ParameterName = parameterName;
+
         public H2Parameter(string parameterName, object value)
         {
             ParameterName = parameterName;
             Value = value;
         }
-        public H2Parameter(object value)
-        {
-            Value = value;
-        }
+
+        public H2Parameter(object value) => Value = value;
 
         public H2Parameter(string name, DbType dataType)
         {
             ParameterName = name;
             DbType = dataType;
         }
+
         public H2Parameter(string name, DbType dataType, int size)
         {
             ParameterName = name;
             DbType = dataType;
             Size = size;
         }
+
         public H2Parameter(string name, DbType dataType, int size, string sourceColumn)
         {
             ParameterName = name;
@@ -75,6 +72,7 @@ namespace System.Data.H2
             Size = size;
             SourceColumn = sourceColumn;
         }
+
         public H2Parameter(
                      string name,
                      DbType dbType,
@@ -97,53 +95,53 @@ namespace System.Data.H2
             Value = value;
         }
 
-
         public override DbType DbType
         {
-            get { return _dbType; }
+            get => _dbType;
             set
             {
-                isTypeSet = true;
+                _isTypeSet = true;
                 _dbType = value;
-                javaType = H2Helper.GetTypeCode(value);
+                _javaType = H2Helper.GetTypeCode(value);
             }
         }
 
         public override ParameterDirection Direction
         {
-            get { return _direction; }
+            get => _direction;
             set
             {
                 if (value != ParameterDirection.Input) { throw new NotSupportedException(); }
                 _direction = value;
             }
         }
+
         public override bool IsNullable { get; set; }
         public override string ParameterName { get; set; }
         public override int Size { get; set; }
         public override string SourceColumn { get; set; }
         public override bool SourceColumnNullMapping { get; set; }
-        public override DataRowVersion SourceVersion
-        {
-            get { return _sourceVersion; }
-            set { _sourceVersion = value; }
-        }
+        public override DataRowVersion SourceVersion { get; set; } = DataRowVersion.Current;
 
-        H2Helper.Converter DotNetToJava;
+        private H2Helper.Converter DotNetToJava;
         public override object Value
         {
-            get { return _value; }
+            get => _value;
             set
             {
                 _value = value;
                 if (value is DBNull || value == null)
-                    javaValue = null;
+                {
+                    _javaValue = null;
+                }
                 else
                 {
                     if (DotNetToJava == null)
+                    {
                         DotNetToJava = H2Helper.ConverterToJava(DbType);
+                    }
 
-                    javaValue = DotNetToJava(value);
+                    _javaValue = DotNetToJava(value);
                 }
             }
         }
@@ -151,17 +149,18 @@ namespace System.Data.H2
         public override void ResetDbType()
         {
             _dbType = DbType.Object;
-            isTypeSet = false;
+            _isTypeSet = false;
         }
+
         internal void SetStatement(int ordnal, PreparedStatement statement)
         {
-            if (isTypeSet)
+            if (_isTypeSet)
             {
-                statement.setObject(ordnal, javaValue, javaType);
+                statement.setObject(ordnal, _javaValue, _javaType);
             }
             else
             {
-                statement.setObject(ordnal, javaValue);
+                statement.setObject(ordnal, _javaValue);
             }
         }
     }

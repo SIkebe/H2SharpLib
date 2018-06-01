@@ -37,9 +37,6 @@ namespace System.Data.H2
             : base(row, command, statementType, tableMapping)
         { }
 
-        public new H2Command Command
-        {
-            get { return (H2Command)base.Command; }
-        }
+        public new H2Command Command => (H2Command)base.Command;
     }
 }

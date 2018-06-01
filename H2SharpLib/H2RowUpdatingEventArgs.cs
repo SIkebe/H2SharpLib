@@ -39,8 +39,8 @@ namespace System.Data.H2
 
         public new H2Command Command
         {
-            get { return (H2Command)base.Command; }
-            set { base.Command = value; }
+            get => (H2Command)base.Command;
+            set => base.Command = value;
         }
     }
 }

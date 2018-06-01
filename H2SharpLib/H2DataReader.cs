@@ -40,119 +40,84 @@ namespace System.Data.H2
             return ordinal + 1;
         }
 
-        private H2Connection connection;
-        private ResultSet set;
-        private ResultSetMetaData meta;
+        private H2Connection _connection;
+        private ResultSet _set;
+        private ResultSetMetaData _meta;
 
         internal H2DataReader(H2Connection connection, ResultSet set)
         {
-            this.set = set;
-            this.connection = connection;
+            _set = set;
+            _connection = connection;
         }
         
         private ResultSetMetaData Meta
         {
             get
             {
-                if (meta == null)
+                if (_meta == null)
                 {
-                    meta = set.getMetaData();
+                    _meta = _set.getMetaData();
                 }
-                return meta;
+
+                return _meta;
             }
         }
-        public override bool IsDBNull(int ordinal)
-        {
-            return set.getObject(ConvertOrdnal(ordinal)) == null;
-        }
-        public override bool NextResult()
-        {
-            throw new NotImplementedException();
-        }
-        public override int RecordsAffected
-        {
-            get { throw new NotImplementedException(); }
-        }
-        public override bool HasRows
-        {
-            get { throw new NotImplementedException(); }
-        }
-        public override bool IsClosed
-        {
-            get { return set.isClosed(); }
-        }
-        public override object this[string name]
-        {
-            get { return set.getObject(name); }
-        }
-        public override object this[int ordinal]
-        {
-            get { return set.getObject(ConvertOrdnal(ordinal)); }
-        }
-        public override int Depth
-        {
-            get { return Meta.getColumnCount(); }
-        }
-        public override int FieldCount
-        {
-            get { return Meta.getColumnCount(); }
-        }
 
+        public override bool IsDBNull(int ordinal) => _set.getObject(ConvertOrdnal(ordinal)) == null;
 
-        public override bool GetBoolean(int ordinal)
-        {
-            return set.getBoolean(ConvertOrdnal(ordinal));
-        }
-        public override byte GetByte(int ordinal)
-        {
-            return set.getByte(ConvertOrdnal(ordinal));
-        }
+        public override bool NextResult() => throw new NotImplementedException();
+
+        public override int RecordsAffected => throw new NotImplementedException();
+
+        public override bool HasRows => throw new NotImplementedException();
+
+        public override bool IsClosed => _set.isClosed();
+
+        public override object this[string name] => _set.getObject(name);
+
+        public override object this[int ordinal] => _set.getObject(ConvertOrdnal(ordinal));
+
+        public override int Depth => Meta.getColumnCount();
+
+        public override int FieldCount => Meta.getColumnCount();
+
+        public override bool GetBoolean(int ordinal) => _set.getBoolean(ConvertOrdnal(ordinal));
+
+        public override byte GetByte(int ordinal) => _set.getByte(ConvertOrdnal(ordinal));
+
         public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length)
         {
-            Byte[] rv = set.getBytes(ConvertOrdnal(ordinal));
+            Byte[] rv = _set.getBytes(ConvertOrdnal(ordinal));
             Array.Copy(rv, dataOffset, buffer, bufferOffset, length);
             return length;
         }
-        public override char GetChar(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-        public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length)
-        {
-            throw new NotImplementedException();
-        }
-        public override string GetDataTypeName(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-        public override DateTime GetDateTime(int ordinal)
-        {
 
-            return UTCStart.AddMilliseconds(set.getDate(ordinal).getTime());
-        }
+        public override char GetChar(int ordinal) => throw new NotImplementedException();
+
+        public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length) 
+            => throw new NotImplementedException();
+
+        public override string GetDataTypeName(int ordinal) => throw new NotImplementedException();
+        public override DateTime GetDateTime(int ordinal) => UTCStart.AddMilliseconds(_set.getDate(ordinal).getTime());
         static readonly DateTime UTCStart = new DateTime(1970, 1, 1);
-        public override decimal GetDecimal(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-        public override double GetDouble(int ordinal)
-        {
-            return set.getDouble(ConvertOrdnal(ordinal));
-        }
-        public override System.Collections.IEnumerator GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
+        public override decimal GetDecimal(int ordinal) => throw new NotImplementedException();
+        public override double GetDouble(int ordinal) => _set.getDouble(ConvertOrdnal(ordinal));
+        public override System.Collections.IEnumerator GetEnumerator() => throw new NotImplementedException();
 
-        Type[] types;
+        private Type[] types;
         public override Type GetFieldType(int ordinal)
         {
             if (types == null)
+            {
                 types = new Type[Meta.getColumnCount() + 1];
+            }
 
             var type = types[ordinal];
             if (type == null)
+            {
                 types[ordinal] = type = DoGetFieldType(ordinal);
+            }
+
             return type;
         }
         Type DoGetFieldType(int ordinal)
@@ -160,32 +125,20 @@ namespace System.Data.H2
             int typeCode = Meta.getColumnType(ConvertOrdnal(ordinal));
             return H2Helper.GetType(typeCode);
         }
-        public override float GetFloat(int ordinal)
-        {
-            return set.getFloat(ConvertOrdnal(ordinal));
-        }
-        public override Guid GetGuid(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-        public override short GetInt16(int ordinal)
-        {
-            return set.getShort(ConvertOrdnal(ordinal));
-        }
-        public override int GetInt32(int ordinal)
-        {
-            return set.getInt(ConvertOrdnal(ordinal));
-        }
-        public override long GetInt64(int ordinal)
-        {
-            return set.getLong(ConvertOrdnal(ordinal));
-        }
+
+        public override float GetFloat(int ordinal) => _set.getFloat(ConvertOrdnal(ordinal));
+        public override Guid GetGuid(int ordinal) => throw new NotImplementedException();
+        public override short GetInt16(int ordinal) => _set.getShort(ConvertOrdnal(ordinal));
+        public override int GetInt32(int ordinal) => _set.getInt(ConvertOrdnal(ordinal));
+        public override long GetInt64(int ordinal) => _set.getLong(ConvertOrdnal(ordinal));
+
         public override string GetName(int ordinal)
         {
             var i = ConvertOrdnal(ordinal);
             var s = Meta.getColumnLabel(i);
-            return s == null ? Meta.getColumnName(i) : s;
+            return s ?? Meta.getColumnName(i);
         }
+
         public override int GetOrdinal(string name)
         {
             for (int index = 0; index < Meta.getColumnCount(); ++index)
@@ -195,8 +148,10 @@ namespace System.Data.H2
                     return index;
                 }
             }
+
             return -1;
         }
+
         public override DataTable GetSchemaTable()
         {
             /*
@@ -251,16 +206,15 @@ namespace System.Data.H2
                 var label = meta.getColumnLabel(iCol);
                 var tableName = meta.getTableName(iCol);
 
-                KeyValuePair<HashSet<String>, HashSet<String>> pksAndUniques;
-                if (!tablesPksAndUniques.TryGetValue(tableName, out pksAndUniques))
+                if (!tablesPksAndUniques.TryGetValue(tableName, out KeyValuePair<HashSet<string>, HashSet<string>> pksAndUniques))
                 {
                     pksAndUniques = new KeyValuePair<HashSet<string>, HashSet<string>>(
-                        connection.GetPrimaryKeysColumns(tableName),
-                        connection.GetUniqueColumns(tableName)
+                        _connection.GetPrimaryKeysColumns(tableName),
+                        _connection.GetUniqueColumns(tableName)
                     );
                 }
 
-                row[ColumnName] = label != null ? label : name;
+                row[ColumnName] = label ?? name;
                 row[ColumnOrdinal] = iCol - 1;
                 row[BaseColumnName] = name;
                 row[BaseSchemaName] = meta.getSchemaName(iCol);
@@ -280,33 +234,38 @@ namespace System.Data.H2
                 row[AllowDBNull] = meta.isNullable(iCol);
                 table.Rows.Add(row);
             }
+
             return table;
             //throw new NotImplementedException();
         }
-        public override string GetString(int ordinal)
-        {
-            return set.getString(ConvertOrdnal(ordinal));
-        }
 
+        public override string GetString(int ordinal) => _set.getString(ConvertOrdnal(ordinal));
 
-        H2Helper.Converter[] converters;
+        private H2Helper.Converter[] converters;
 
         public override object GetValue(int ordinal)
         {
             var convOrd = ConvertOrdnal(ordinal);
-            object result = set.getObject(convOrd);
+            object result = _set.getObject(convOrd);
             if (result == null)
+            {
                 return DBNull.Value;
+            }
 
             if (converters == null)
+            {
                 converters = new H2Helper.Converter[Meta.getColumnCount()];
+            }
 
             H2Helper.Converter converter = converters[ordinal];
             if (converter == null)
+            {
                 converters[ordinal] = converter = H2Helper.ConverterToCLR(Meta.getColumnType(convOrd));
+            }
 
             return converter(result);
         }
+
         public override int GetValues(object[] values)
         {
             if (values == null) { throw new ArgumentNullException("values"); }
@@ -314,21 +273,17 @@ namespace System.Data.H2
             {
                 values[index] = GetValue(index);
             }
+
             return values.Length;
         }
-        public override bool Read()
-        {
-            return set.next();
-        }
-        public override void Close()
-        {
-            set.close();
-        }
 
+        public override bool Read() => _set.next();
+
+        public override void Close() => _set.close();
     }
+
     static class DatabaseMetaDataExtensions
     {
-
         public static Dictionary<String, int> GetColumnTypeCodes(this H2Connection connection, String tableName)
         {
             // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
@@ -349,6 +304,7 @@ namespace System.Data.H2
             }*/
             return connection.ReadMap<int>("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where upper(table_name) = '" + tableName.ToUpper() + "'");
         }
+
         public static HashSet<String> GetPrimaryKeysColumns(this H2Connection connection, String tableName)
         {
             // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
@@ -374,6 +330,7 @@ namespace System.Data.H2
             }
             return ret;
         }
+
         public static HashSet<String> GetUniqueColumns(this H2Connection connection, String tableName)
         {
             // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String, java.lang.String, java.lang.String, boolean, boolean)
